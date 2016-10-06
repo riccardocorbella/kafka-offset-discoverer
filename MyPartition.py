@@ -4,15 +4,12 @@ from datetime import datetime
 import json
 
 class MyPartition:
-    def __init__(self, servers, topic_name, partition_id, year, month, day):
+    def __init__(self, accuracy, servers, topic_name, partition_id, timestamp):
+        self.accuracy = accuracy
         self.consumer = KafkaConsumer(bootstrap_servers=servers, consumer_timeout_ms=20000)
         self.partition = TopicPartition(topic_name, partition_id)
         self.consumer.assign([self.partition])
-        self.year = year
-        self.month = month
-        self.day = day
-        #self.referringDate = datetime(self.year, self.month, self.day, 0 , 0 , 0)
-        self.referringDate = datetime(self.year, self.month, self.day)
+        self.referringDate = timestamp
 
     def search(self, l, r, solutions):
         if l > r:
@@ -23,9 +20,16 @@ class MyPartition:
 
         m = (l + r) / 2
         event = self.read_event(m)
-        #date = datetime.strptime(event['Timestamp'][:13], '%Y-%m-%dT%H') #':%M:%S')
-        #date = datetime.strptime(event['Timestamp'][:19], '%Y-%m-%dT%H:%M:%S')
-        date = datetime.strptime(event['Timestamp'][:10], '%Y-%m-%d')
+
+        date = None
+        if self.accuracy == "hour":
+            date = datetime.strptime(event['Timestamp'][:13], '%Y-%m-%dT%H') #':%M:%S')
+        elif self.accuracy == "minute":
+            date = datetime.strptime(event['Timestamp'][:16], '%Y-%m-%dT%H:%M')
+        elif self.accuracy == "second":
+            date = datetime.strptime(event['Timestamp'][:19], '%Y-%m-%dT%H:%M:%S')
+        else:
+            date = datetime.strptime(event['Timestamp'][:10], '%Y-%m-%d')
 
         if date < self.referringDate:
             l = m + 1
