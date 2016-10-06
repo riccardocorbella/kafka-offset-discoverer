@@ -2,7 +2,6 @@ from kafka import KafkaConsumer
 from kafka import TopicPartition
 from datetime import datetime
 import json
-import sys
 
 class MyPartition:
     def __init__(self, servers, topic_name, partition_id, year, month, day):
@@ -24,6 +23,7 @@ class MyPartition:
 
         m = (l + r) / 2
         event = self.read_event(m)
+        #date = datetime.strptime(event['Timestamp'][:13], '%Y-%m-%dT%H') #':%M:%S')
         #date = datetime.strptime(event['Timestamp'][:19], '%Y-%m-%dT%H:%M:%S')
         date = datetime.strptime(event['Timestamp'][:10], '%Y-%m-%d')
 
